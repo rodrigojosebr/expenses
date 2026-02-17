@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { kv } from "@vercel/kv";
 import {
-  getUserIdFromApiKey,
+  getUserFromApiKey,
   todayBR,
   monthKeyFromDate,
   parseAmountCents,
@@ -14,8 +14,8 @@ import {
 export async function POST(req: Request) {
   try {
     const apiKey = req.headers.get("x-api-key");
-    const userId = getUserIdFromApiKey(apiKey);
-    if (!userId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    const user = getUserFromApiKey(apiKey);
+    if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
     const body = await req.json().catch(() => ({}));
     const text = String(body.text ?? body.valor ?? "").trim();
@@ -36,12 +36,12 @@ export async function POST(req: Request) {
 
     const eventId = newEventId();
 
-    const eventKey = `u:${userId}:e:${eventId}`;
-    const idxKey = `u:${userId}:idx:${month}`;
+    const eventKey = `u:${user.id}:e:${eventId}`;
+    const idxKey = `u:${user.id}:idx:${month}`;
 
     const event = {
       id: eventId,
-      userId,
+      user: { id: user.id, name: user.name },
       ts,
       date: dateBR,
       amountCents,

@@ -4,9 +4,7 @@ This document provides a comprehensive overview of the `gastos-kv-mvp` project f
 
 ## Project Overview
 
-`gastos-kv-mvp` is a Next.js application designed for tracking expenses. It's a Minimum Viable Product (MVP) that exposes two simple API endpoints: one for recording a new expense and another for exporting a month's expenses to a CSV file.
-
-The application uses Vercel KV as its data store, which is a serverless Redis database. Authentication is managed through API keys, which are mapped to predefined user IDs.
+`gastos-kv-mvp` is a Next.js application for tracking expenses. The primary interface is a voice-first page that allows users to record expenses by speaking. The application uses Vercel KV as its data store and features API endpoints for expense creation, user validation, and data export.
 
 ### Core Technologies
 
@@ -17,52 +15,39 @@ The application uses Vercel KV as its data store, which is a serverless Redis da
 
 ### Architecture
 
-*   **Frontend:** A minimal frontend exists at the root (`/`) to display basic information about the available endpoints.
+*   **Frontend:**
+    *   `/`: A minimal root page with basic endpoint information.
+    *   `/voice`: The main user interface for recording expenses via voice recognition. It's a modern, dark-themed, client-side component.
 *   **Backend (API Routes):**
-    *   `POST /api/gasto`: Receives a JSON payload with an expense description (`text`). It parses the text to extract the amount, bank, and description, then stores it in Vercel KV. It requires an `x-api-key` header for authentication.
-    *   `GET /api/export.csv`: Exports all expenses for a given month (`YYYY-MM`) as a CSV file. It requires an API key as a query parameter.
-*   **Business Logic:** The core logic for parsing expense text, handling dates, and interacting with the database is located in `lib/gastos.ts`.
-*   **Configuration:** Environment variables are used to configure API keys (`USER_KEYS_JSON`).
+    *   `POST /api/gasto`: Receives a JSON payload with an expense description (`text`). It parses the text, extracts the amount, bank, and description, and stores it in Vercel KV.
+    *   `GET /api/export.csv`: Exports all expenses for a given month (`YYYY-MM`) as a CSV file.
+    *   `GET /api/user`: Validates an API key (password) and returns the corresponding user information (`{id, name}`).
+*   **Business Logic:** Located in `lib/gastos.ts`, this module contains core logic for:
+    *   Parsing expense text, including amounts written as words (e.g., "vinte reais").
+    *   Detecting the bank from the text.
+    *   Handling user authentication.
+*   **Configuration:** Environment variables are used to configure access passwords (`USER_KEYS_JSON`).
 
 ## Building and Running
 
 The project uses `npm` as the package manager.
 
-### Prerequisites
-
-*   Node.js
-*   `npm`
-*   A Vercel account with Vercel KV storage set up.
-*   A `.env.local` file with the required environment variables.
-
 ### Key Commands
 
-The following commands are defined in `package.json`:
-
-*   **Install dependencies:**
-    ```bash
-    npm install
-    ```
-*   **Run the development server:**
-    ```bash
-    npm run dev
-    ```
-*   **Build for production:**
-    ```bash
-    npm run build
-    ```
-*   **Start the production server:**
-    ```bash
-    npm run start
-    ```
-*   **Run linter:**
-    ```bash
-    npm run lint
-    ```
+*   **Install dependencies:** `npm install`
+*   **Run the development server:** `npm run dev`
+*   **Build for production:** `npm run build`
+*   **Start the production server:** `npm run start`
+*   **Run linter:** `npm run lint`
 
 ## Development Conventions
 
-*   **Authentication:** All API requests are authenticated using an `x-api-key` header or a `key` query parameter. The mapping of keys to users is stored in the `USER_KEYS_JSON` environment variable.
-*   **Data Model:** Expense events are stored as JSON objects in Vercel KV. An index is maintained for each month to allow for efficient querying.
-*   **Code Style:** The project follows standard TypeScript and Next.js conventions. The code is not heavily commented, but the function and variable names are descriptive.
-*   **Error Handling:** The API endpoints include basic `try...catch` blocks for error handling and return appropriate HTTP status codes (400 for bad requests, 401 for unauthorized, 500 for server errors).
+*   **Authentication:** API requests are authenticated using an `x-api-key` header or a `key` query parameter. The mapping of keys to user objects is stored in the `USER_KEYS_JSON` environment variable, with the following structure:
+    ```json
+    {
+      "your-secret-key": { "id": "unique_user_id", "name": "display_name" }
+    }
+    ```
+*   **Data Model:** Expense events are stored as JSON objects in Vercel KV. The event object now includes a `user` object (`{id, name}`). An index is maintained for each month for efficient, chronologically ordered queries.
+*   **Code Style:** The project follows standard TypeScript and Next.js conventions.
+*   **Error Handling:** API endpoints include `try...catch` blocks and return appropriate HTTP status codes.
