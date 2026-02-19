@@ -15,17 +15,58 @@ export async function GET(req: Request) {
   const user = getUserFromApiKey(apiKey);
   if (!user) return new NextResponse("Unauthorized", { status: 401 });
 
-  const month = url.searchParams.get("month"); // YYYY-MM
-  if (!month || !/^\d{4}-\d{2}$/.test(month)) {
-    return new NextResponse("Missing/invalid month (use YYYY-MM)", { status: 400 });
+  const month = url.searchParams.get("month"); // Legacy support
+  const from = url.searchParams.get("from") || month;
+  const to = url.searchParams.get("to") || month;
+
+  if (!from || !/^\d{4}-\d{2}$/.test(from)) {
+    return new NextResponse("Missing/invalid start month (use YYYY-MM)", { status: 400 });
   }
 
-  const idxKey = `u:${user.id}:idx:${month}`;
-  const eventIds = await kv.zrange<string[]>(idxKey, 0, -1);
+  const [startYear, startMonthVal] = from.split("-").map(Number);
+  const startDate = new Date(startYear, startMonthVal - 1);
+  
+  let endDate = startDate;
+  if (to && /^\d{4}-\d{2}$/.test(to)) {
+    const [endYear, endMonthVal] = to.split("-").map(Number);
+    endDate = new Date(endYear, endMonthVal - 1);
+  }
+
+  if (endDate < startDate) {
+    return new NextResponse("End date must be after start date", { status: 400 });
+  }
+
+  // Calculate month difference
+  const diffMonths = (endDate.getFullYear() - startDate.getFullYear()) * 12 + (endDate.getMonth() - startDate.getMonth());
+  
+  if (diffMonths > 12) {
+    return new NextResponse("Range cannot exceed 12 months", { status: 400 });
+  }
+
+  const monthsToQuery: string[] = [];
+  const current = new Date(startDate);
+  // Iterate through months correctly
+  while (current <= endDate) {
+    const y = current.getFullYear();
+    const m = String(current.getMonth() + 1).padStart(2, '0');
+    monthsToQuery.push(`${y}-${m}`);
+    current.setMonth(current.getMonth() + 1);
+  }
+
+  let allEventIds: string[] = [];
+
+  for (const m of monthsToQuery) {
+    const idxKey = `u:${user.id}:idx:${m}`;
+    const ids = await kv.zrange<string[]>(idxKey, 0, -1);
+    if (ids && ids.length > 0) {
+      allEventIds = allEventIds.concat(ids);
+    }
+  }
 
   let csv = "Data;Valor;Descricao;Banco\n";
-  if (!eventIds.length) {
-    return new NextResponse(csv, {
+  if (!allEventIds.length) {
+    const csvWithBOM = "\uFEFF" + csv;
+    return new NextResponse(csvWithBOM, {
       headers: {
         "content-type": "text/csv; charset=utf-8",
         "cache-control": "no-store",
@@ -33,11 +74,16 @@ export async function GET(req: Request) {
     });
   }
 
-  const keys = eventIds.map((id) => `u:${user.id}:e:${id}`);
-  const events = await kv.mget<any[]>(...keys);
+  const uniqueKeys = Array.from(new Set(allEventIds)).map((id) => `u:${user.id}:e:${id}`);
+  const events = await kv.mget<any[]>(...uniqueKeys);
 
-  for (const ev of events) {
-    if (!ev) continue;
+  const validEvents = events.filter((ev) => ev !== null);
+  validEvents.sort((a, b) => {
+    if (!a.date || !b.date) return 0;
+    return new Date(a.date).getTime() - new Date(b.date).getTime();
+  });
+
+  for (const ev of validEvents) {
     const row = [
       csvEscape(String(ev.date ?? "")),
       csvEscape(String(ev.amountBRL ?? "")),
@@ -47,7 +93,10 @@ export async function GET(req: Request) {
     csv += row + "\n";
   }
 
-  return new NextResponse(csv, {
+  // Add BOM for Excel compatibility
+  const csvWithBOM = "\uFEFF" + csv;
+
+  return new NextResponse(csvWithBOM, {
     headers: {
       "content-type": "text/csv; charset=utf-8",
       "cache-control": "no-store",
