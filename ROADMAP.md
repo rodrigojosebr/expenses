@@ -1,0 +1,56 @@
+# 🗺️ Plano de Melhorias: Gastos KV MVP
+
+Este documento descreve o roteiro para evoluir a arquitetura, estilo e funcionalidades do projeto, focando em escalabilidade e manutenção.
+
+## 🔄 Fluxo de Desenvolvimento
+
+Para manter a organização, utilizaremos o seguinte fluxo:
+1. **Source of Truth**: A branch `main` contém o código estável e o `ROADMAP.md` atualizado.
+2. **Feature Branches**: Cada item deste roadmap será implementado em uma branch separada (ex: `feature/nome-da-tarefa`).
+3. **Atualização do Roadmap**: Ao concluir uma tarefa na branch, marcamos o item como concluído `[x]` no `ROADMAP.md` da própria branch.
+4. **Merge**: Após a validação, a branch é mergeada na `main`.
+
+---
+
+## 🎨 1. Estilização e UI Declarativa
+O objetivo é remover os estilos inline (`const styles = {...}`) e adotar uma solução robusta, type-safe e performática.
+
+- [ ] **Instalar e Configurar PandaCSS**
+    - Escolha ideal para Next.js (Server Components) pois é *zero-runtime* e *type-safe*.
+    - Permite criar "Recipes" (receitas) para variantes de componentes (ex: botão primário/secundário).
+- [ ] **Migrar Estilos Inline para PandaCSS**
+    - Converter o layout flexbox global.
+    - Criar padrões de tokens (cores, espaçamentos) no arquivo de configuração.
+
+## 🧩 2. Componentização e Arquitetura
+O objetivo é "quebrar" o arquivo gigante `page.tsx` em partes menores e reutilizáveis.
+
+- [ ] **Atomic Design (Pastas)**
+    - `components/ui`: Botões, Inputs, Selects (burros/sem lógica).
+    - `components/features`: Painel de Configuração, Botão do Microfone (com contexto).
+    - `components/layout`: Header, Footer.
+- [ ] **Extração de Componentes**
+    - Mover `MicIcon`, `SettingsIcon`, `MoneyRain` para arquivos isolados.
+    - Criar componente `SettingsDrawer` (Gaveta de configurações).
+
+## 🧠 3. Separação de Lógica (Hooks)
+O objetivo é tirar a lógica de negócio (o "como funciona") de dentro da interface (o "como se parece").
+
+- [ ] **Hook: `useSpeechRecognition`**
+    - Encapsular toda a lógica de `window.SpeechRecognition`, estados de `isRecording` e `transcript`.
+- [ ] **Hook: `useGastosApi`**
+    - Encapsular as chamadas `fetch` para `/api/gasto` e `/api/user`.
+    - Gerenciar estados de loading e erro.
+- [ ] **Contexto de Usuário**
+    - Criar um React Context para gerenciar a `apiKey` e `userName` globalmente, removendo a prop drilling ou leitura repetitiva de localStorage.
+
+## 🔐 4. Autenticação e Dados
+O objetivo é profissionalizar o acesso, saindo do modelo de "Senha única no JSON".
+
+- [ ] **Implementar NextAuth.js (Auth.js)**
+    - Configurar provider (ex: Google ou Credentials com hash seguro).
+- [ ] **Tela de Login e Cadastro**
+    - Criar rotas `/login` e `/register`.
+    - Proteger a rota `/voice` via Middleware.
+- [ ] **Refatoração do Banco (KV)**
+    - Adaptar a chave dos dados para incluir o ID do usuário autenticado.
