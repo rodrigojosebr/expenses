@@ -33,16 +33,18 @@ O objetivo é "quebrar" o arquivo gigante `page.tsx` em partes menores e reutili
     - Mover `MicIcon`, `SettingsIcon`, `MoneyRain` para arquivos isolados.
     - Criar componente `SettingsDrawer` (Gaveta de configurações).
 
-## 🧠 3. Separação de Lógica (Hooks)
-O objetivo é tirar a lógica de negócio (o "como funciona") de dentro da interface (o "como se parece").
+## 🧠 3. Separação de Lógica (Hooks e Contextos)
+O objetivo é tirar a lógica de negócio de dentro da interface, de forma **gradual e segura**, validando cada passo.
 
-- [ ] **Hook: `useSpeechRecognition`**
-    - Encapsular toda a lógica de `window.SpeechRecognition`, estados de `isRecording` e `transcript`.
-- [ ] **Hook: `useGastosApi`**
-    - Encapsular as chamadas `fetch` para `/api/gasto` e `/api/user`.
-    - Gerenciar estados de loading e erro.
-- [ ] **Contexto de Usuário**
-    - Criar um React Context para gerenciar a `apiKey` e `userName` globalmente, removendo a prop drilling ou leitura repetitiva de localStorage.
+- [ ] **3.1 Isolamento do Reconhecimento de Voz**
+    - [ ] Criar o hook isolado `hooks/useSpeechRecognition.ts`.
+    - [ ] Refatorar `app/voice/page.tsx` para usar esse hook.
+- [ ] **3.2 Isolamento das Chamadas de API**
+    - [ ] Criar o hook isolado `hooks/useGastosApi.ts`.
+    - [ ] Refatorar chamadas de API na `page.tsx` para usarem o hook.
+- [ ] **3.3 Gerenciamento de Estado Global do Usuário**
+    - [ ] Criar o `contexts/UserContext.tsx` para gerenciar `apiKey` e `userName`.
+    - [ ] Envolver a aplicação no `UserProvider` e migrar lógica de persistência.
 
 ## 🔐 4. Autenticação e Dados
 O objetivo é profissionalizar o acesso, saindo do modelo de "Senha única no JSON".
