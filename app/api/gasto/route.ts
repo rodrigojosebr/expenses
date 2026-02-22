@@ -53,7 +53,22 @@ export async function POST(req: Request) {
     await kv.set(eventKey, event);
     await kv.zadd(idxKey, { score: ts, member: eventId });
 
-    return NextResponse.json({ ok: true, event });
+    // --- Cálculo do Total Mensal ---
+    // Puxa todos os IDs do mês atual
+    const allEventIds = await kv.zrange<string[]>(idxKey, 0, -1);
+    let monthlyTotalCents = 0;
+
+    if (allEventIds.length > 0) {
+      const keys = allEventIds.map(id => `u:${user.id}:e:${id}`);
+      const events = await kv.mget<any[]>(...keys);
+      monthlyTotalCents = events.reduce((acc, ev) => acc + (ev?.amountCents || 0), 0);
+    }
+
+    return NextResponse.json({ 
+      ok: true, 
+      event, 
+      monthlyTotalBRL: centsToBRL(monthlyTotalCents) 
+    });
   } catch (e: any) {
     return NextResponse.json({ error: e?.message ?? "Erro" }, { status: 500 });
   }

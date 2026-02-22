@@ -14,9 +14,10 @@ export function getUserFromApiKey(apiKey: string | null): User | null {
 }
 
 export function centsToBRL(cents: number): string {
-  const intPart = Math.floor(cents / 100);
-  const decPart = String(Math.abs(cents) % 100).padStart(2, "0");
-  return `${intPart},${decPart}`;
+  return (cents / 100).toLocaleString('pt-BR', {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  });
 }
 
 export function newEventId(): string {
