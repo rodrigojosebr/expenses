@@ -24,7 +24,7 @@ The project strictly follows a layered architecture to separate business logic f
 
 *   **1. Presentation Layer (UI/Components/PWA):**
     *   `/app`: Next.js App Router pages, API route handlers, and PWA manifest.
-    *   `/components`: Reusable UI components following Atomic Design (`ui`, `features`, `layout`).
+    *   `/components`: Reusable UI components following Atomic Design (`ui`, `features`, `layout`). Includes real-time UX feedback, animations, and dynamic financial summaries for voice-first interactions.
 *   **2. Application / Validation Layer:**
     *   `/schemas`: Zod schemas for strict runtime validation of API requests and form submissions (e.g., `expenseSchema.ts`, `authSchema.ts`).
     *   `/types`: TypeScript definitions inferred from Prisma and Zod schemas.

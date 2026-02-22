@@ -17,19 +17,21 @@ export async function parseExpenseText(text: string): Promise<ParsedExpense | nu
   const todayStr = `${year}-${month}-${day}`;
 
   const prompt = `
-Você é um assistente financeiro especializado em extrair dados de despesas a partir de transcrições de voz.
-Hoje é dia ${todayStr}.
-Se o usuário não mencionar uma data na frase, assuma que a compra foi feita hoje (${todayStr}).
+Você é um assistente financeiro de transcrição de voz.
+Hoje é ${todayStr} (use se a data não for dita).
+Corrija erros comuns de STT pelo contexto (ex: "pic" -> Pix, "shopp" -> Shopee, "chain" -> Shein). Mantenha "shopping" se for o local.
 
-Extraia as seguintes informações da frase do usuário e retorne APENAS um JSON estrito, sem formatação markdown ou crases ao redor:
+Retorne APENAS um JSON estrito:
 {
-  "amountCents": <número inteiro, o valor da despesa em centavos. Ex: 18 reais e 70 centavos = 1870. Se não encontrar valor retorne null>,
-  "description": <string, a descrição do que foi comprado. Ex: "Bolsa no Carrefour". Se não houver, coloque "Sem descrição">,
-  "date": <string, a data da compra no formato YYYY-MM-DD. Ex: "2026-12-21">,
-  "paymentMethod": <string, o método de pagamento mencionado (ex: Crédito, Débito, Pix, Dinheiro, etc). Se não for mencionado, coloque "Não informado">
+  "amountCents": <inteiro em centavos. Ex: 18,70 = 1870. null se não achar>,
+  "description": <string do gasto corrigida. Ex: "Bolsa na Shein">,
+    "description": <string, a descrição do que foi comprado. Ex: "Bolsa no Carrefour". Se não houver, coloque "Sem descrição">,
+
+  "date": <YYYY-MM-DD da compra>,
+  "paymentMethod": <Crédito, Débito, Pix, Dinheiro, etc. "Não informado" se omitido>
 }
 
-Frase do usuário: "${text}"
+Frase: "${text}"
 `;
 
   try {

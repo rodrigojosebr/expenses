@@ -75,6 +75,7 @@ export default function VoiceGastoPage() {
   const recognitionRef = useRef<any>(null);
   const statusTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const loadingIntervalRef = useRef<NodeJS.Timeout | null>(null);
+  const silenceTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const settingsPanelRef = useRef<HTMLDivElement>(null);
   const settingsButtonRef = useRef<HTMLButtonElement>(null);
 
@@ -128,30 +129,41 @@ export default function VoiceGastoPage() {
       const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
       if (SpeechRecognition) {
         recognitionRef.current = new SpeechRecognition();
-        recognitionRef.current.continuous = false;
+        recognitionRef.current.continuous = true;
         recognitionRef.current.lang = 'pt-BR';
-        recognitionRef.current.interimResults = false;
+        recognitionRef.current.interimResults = true;
         recognitionRef.current.maxAlternatives = 1;
 
         recognitionRef.current.onstart = () => {
           setIsRecording(true);
-          setStatus('Ouvindo...');
+          setStatus('Ouvindo... (pode falar no seu tempo)');
         };
 
         recognitionRef.current.onresult = (event: any) => {
-          const speechResult = event.results[0][0].transcript;
-          setTranscript(speechResult);
-          setStatus('Confirme o texto reconhecido.');
-          setAwaitingConfirmation(true);
+          let currentTranscript = '';
+          for (let i = 0; i < event.results.length; i++) {
+            currentTranscript += event.results[i][0].transcript;
+          }
+          setTranscript(currentTranscript);
+
+          if (silenceTimeoutRef.current) clearTimeout(silenceTimeoutRef.current);
+
+          silenceTimeoutRef.current = setTimeout(() => {
+            if (recognitionRef.current) recognitionRef.current.stop();
+          }, 2000); // 2 segundos de silêncio encerram a gravação
         };
 
         recognitionRef.current.onerror = (event: any) => {
           setIsRecording(false);
+          if (silenceTimeoutRef.current) clearTimeout(silenceTimeoutRef.current);
           setStatus(`Erro: ${event.error}`);
         };
 
         recognitionRef.current.onend = () => {
           setIsRecording(false);
+          if (silenceTimeoutRef.current) clearTimeout(silenceTimeoutRef.current);
+          setStatus('Confirme o texto reconhecido.');
+          setAwaitingConfirmation(true);
         };
       } else {
         setStatus('Reconhecimento de fala não é suportado neste navegador.');
@@ -164,6 +176,7 @@ export default function VoiceGastoPage() {
     return () => {
       if (statusTimeoutRef.current) clearTimeout(statusTimeoutRef.current);
       if (loadingIntervalRef.current) clearInterval(loadingIntervalRef.current);
+      if (silenceTimeoutRef.current) clearTimeout(silenceTimeoutRef.current);
     };
   }, []);
 
@@ -171,6 +184,10 @@ export default function VoiceGastoPage() {
     if (!apiKey) {
       setStatus('Configure sua senha nas configurações.');
       setShowSettings(true);
+      return;
+    }
+    if (isRecording && recognitionRef.current) {
+      recognitionRef.current.stop();
       return;
     }
     if (recognitionRef.current && !isRecording) {
@@ -183,7 +200,7 @@ export default function VoiceGastoPage() {
 
   const sendGastoToApi = async () => {
     if (!transcript) return;
-    
+
     const loadingPhrases = [
       "👛 Abrindo a carteira...",
       "📝 Anotando no caderninho...",
@@ -601,11 +618,12 @@ export default function VoiceGastoPage() {
       <MainContent pushDown={showSettings}>
         <p
           className={css({
-            fontSize: '1.8rem',
-            fontWeight: '500',
-            minHeight: '2.5em',
-            color: '#fff',
+            fontSize: '1.4rem',
+            fontWeight: '400',
+            minHeight: '3em',
+            color: '#888',
             padding: '0 1rem',
+            lineHeight: '1.4',
           })}
         >
           {transcript}
@@ -615,7 +633,7 @@ export default function VoiceGastoPage() {
           className={css({
             marginTop: '3rem',
             marginBottom: '2rem',
-            fontSize: '1.4rem',
+            fontSize: '1.8rem',
             minHeight: '2em',
             color: '#ffffff',
             fontWeight: 'bold',

@@ -1,98 +1,77 @@
-# gastos-kv-mvp
+# 💰 Gastos App (MVP)
 
-MVP para registrar gastos por voz e exportar um CSV por mês, usando Vercel KV como banco de dados.
+Um aplicativo moderno, *voice-first*, focado na facilidade de registrar despesas do dia a dia. Chega de planilhas complicadas: apenas aperte um botão, fale o que gastou e deixe a Inteligência Artificial fazer o resto.
 
-## Funcionalidades
+Atualmente em fase de MVP (usando Vercel KV) e em transição ativa para uma arquitetura robusta Multi-usuário SaaS (PostgreSQL + Prisma).
 
--   **Interface de Voz**: Uma página moderna em `/voice` permite que o usuário registre gastos falando, com reconhecimento de voz em português.
--   **APIs**: Endpoints para registrar gastos, validar usuários e exportar dados.
--   **Parsing Inteligente**: A lógica de backend extrai valor (incluindo por extenso), banco e descrição da frase falada.
+---
 
-## Como Rodar
+## ✨ Funcionalidades em Destaque
 
-### Pré-requisitos
+*   **🎙️ Registro por Voz (Voice-First):** Pressione o microfone e diga coisas como *"Ontem gastei 35 reais de Uber no cartão de crédito"*. O app entende linguagem natural, gírias e datas relativas.
+*   **🤖 Inteligência Artificial (Google Gemini):** Alimentado pelo modelo `gemini-2.5-flash`, o sistema extrai automaticamente o valor (em centavos e formatado em R$), a descrição exata, a data e o método de pagamento (Crédito, Débito, Pix, Dinheiro).
+*   **💡 Feedback Financeiro Imediato:** Assim que o gasto é salvo, você recebe um "choque de realidade" animado informando o total que você já gastou naquele mês, acompanhado de uma frase bem-humorada com o seu nome (ex: *"💸 Mais um pra conta, Raj! Dinheiro é pra circular mesmo"*).
+*   **🎨 UI/UX Moderna e Fluida:** Construído com Next.js (App Router) e estilizado usando **PandaCSS** (zero-runtime CSS-in-JS), com animações de carregamento (`fadeIn`) e feedback visual claro para o usuário em transições.
+*   **📊 Exportação de Dados:** Geração de relatórios mensais em `.csv` (Data; Valor; Descrição; Método de Pagamento) compatíveis com Excel.
 
--   Node.js (versão 20 ou superior)
--   npm
--   Uma conta na Vercel com o Vercel KV habilitado.
+---
 
-### Configuração
+## 🚀 Como Rodar Localmente
 
-1.  **Clone o repositório:**
-    ```bash
-    git clone <URL_DO_REPOSITORIO>
-    cd gastos-kv-mvp
-    ```
+### 1. Pré-requisitos
+*   Node.js (versão 20 ou superior)
+*   Conta na Vercel (para provisionar o banco de dados KV)
+*   Chave de API do Google Gemini (`GEMINI_API_KEY`)
 
-2.  **Instale a Vercel CLI:**
-    ```bash
-    npm install -g vercel
-    ```
+### 2. Configuração Inicial
 
-3.  **Conecte com a Vercel:**
-    ```bash
-    vercel link
-    ```
-
-4.  **Baixe as Variáveis de Ambiente:**
-    ```bash
-    cp .env.example .env.local
-    vercel env pull .env.local
-    ```
-
-5.  **Configure suas Senhas de Acesso:**
-    Edite o arquivo `.env.local` e, na variável `USER_KEYS_JSON`, crie suas próprias senhas e configure os usuários. O `id` deve ser um identificador único, e o `name` é o nome que aparecerá na interface.
-    ```json
-    USER_KEYS_JSON='{
-      "sua-senha-secreta-1": { "id": "user_1a2b3c", "name": "raj" },
-      "sua-senha-secreta-2": { "id": "user_4d5e6f", "name": "roseane" }
-    }'
-    ```
-
-### Instalação
-
-Instale as dependências do projeto:
+Clone o repositório e instale as dependências:
 ```bash
+git clone <URL_DO_REPOSITORIO>
+cd gastos-kv-mvp
 npm install
 ```
 
-### Rodando em Desenvolvimento
+Configure o PandaCSS e gere a pasta `styled-system/`:
+```bash
+npm run prepare
+```
 
-Execute o servidor de desenvolvimento e acesse `http://localhost:3000/voice`:
+### 3. Variáveis de Ambiente (`.env.local`)
+Copie o arquivo de exemplo e configure suas chaves:
+```bash
+cp .env.example .env.local
+```
+
+Dentro de `.env.local`, você precisará configurar:
+1.  **Chave da IA:** Insira sua `GEMINI_API_KEY` gerada no Google AI Studio.
+2.  **Chave do Banco de Dados:** Adicione o `KV_REST_API_URL` e `KV_REST_API_TOKEN` gerados pelo seu banco KV na Vercel.
+3.  **Usuários de Teste:** O sistema de login provisório é baseado em um JSON mapeado. Mude o ID e Nome se desejar.
+
+### 4. Rodando a Aplicação
+Execute o servidor de desenvolvimento:
 ```bash
 npm run dev
 ```
+Acesse `http://localhost:3000/voice` no seu navegador (de preferência no celular para testar a responsividade e o microfone).
 
-## Interface de Voz (`/voice`)
+---
 
-Acesse `http://localhost:3000/voice` para a principal interface da aplicação.
+## 🏗️ Arquitetura Atual e Próximos Passos
 
--   **Primeiro Acesso**: O painel de configurações abrirá para que você insira a "Senha" que foi configurada no passo 5 da configuração.
--   **Uso**: Clique no microfone, fale o gasto (ex: "vinte reais de lanche no btg") e aguarde a transcrição. Confirme para enviar.
+O projeto segue a arquitetura **Clean Code**, separando claramente as camadas de Apresentação (UI), Regras de Negócio (Serviços de IA) e Acesso a Dados (Repositório).
 
-## Endpoints
+Neste exato momento, concluímos as fases de Estilização (PandaCSS) e Inteligência Artificial (Gemini).
 
-### `POST /api/gasto`
+**Próxima Fase Imediata:**
+Migração da base de dados (que hoje é NoSQL via Vercel KV) para **PostgreSQL Serverless (Neon)** usando o Prisma ORM, garantindo integridade de dados multi-usuário e abrindo caminho para o Dashboard administrativo. Acompanhe o arquivo `ROADMAP.md` para visualizar o status de cada etapa.
 
-Registra um novo gasto.
+---
 
--   **Header:** `x-api-key: <sua_senha_secreta>`
--   **Body (JSON):** `{ "text": "uber 32,90 nubank" }`
--   **Resposta de Sucesso (JSON):** Contém o objeto do evento criado, incluindo o objeto `user`.
+## 🛠️ Tecnologias Utilizadas
 
-### `GET /api/user`
-
-Valida uma senha e retorna as informações do usuário.
-
--   **Header:** `x-api-key: <sua_senha_secreta>`
--   **Resposta de Sucesso (JSON):** `{ "user": { "id": "user_1a2b3c", "name": "raj" } }`
-
-### `GET /api/export.csv`
-
-Exporta os gastos de um mês específico em formato CSV.
-
--   **Query Parameters:**
-    -   `month`: O mês no formato `YYYY-MM`.
-    -   `key`: Sua senha secreta.
--   **Exemplo:** `GET /api/export.csv?month=2024-01&key=<sua_senha_secreta>`
--   **Resposta CSV:** `Data;Valor;Descricao;Banco`
+*   **Core:** Next.js (App Router) + TypeScript
+*   **Estilização:** PandaCSS
+*   **IA Parser:** Google Gemini SDK (`@google/genai`)
+*   **Banco de Dados (Atual):** Vercel KV (Redis)
+*   **Banco de Dados (Futuro):** Neon PostgreSQL + Prisma
