@@ -1,58 +1,113 @@
 # 🗺️ Plano de Melhorias: Gastos KV MVP
 
-Este documento descreve o roteiro para evoluir a arquitetura, estilo e funcionalidades do projeto, focando em escalabilidade e manutenção.
+Este documento descreve o roteiro para evoluir a arquitetura, estilo e funcionalidades do projeto, focando na transição para um sistema Multi-usuário SaaS escalável com PostgreSQL.
 
 ## 🔄 Fluxo de Desenvolvimento
 
 Para manter a organização, utilizaremos o seguinte fluxo:
 1. **Source of Truth**: A branch `main` contém o código estável e o `ROADMAP.md` atualizado.
 2. **Feature Branches**: Cada item deste roadmap será implementado em uma branch separada (ex: `feature/nome-da-tarefa`).
-3. **Atualização do Roadmap**: Ao concluir uma tarefa na branch, marcamos o item como concluído `[x]` no `ROADMAP.md` da própria branch.
+3. **Atualização do Roadmap**: Ao concluir uma tarefa na branch, marcamos o item como concluído `[x]`.
 4. **Merge**: Após a validação, a branch é mergeada na `main`.
 
 ---
 
 ## 🎨 1. Estilização e UI Declarativa
-O objetivo é remover os estilos inline (`const styles = {...}`) e adotar uma solução robusta, type-safe e performática.
-
 - [x] **Instalar e Configurar PandaCSS**
-    - Escolha ideal para Next.js (Server Components) pois é *zero-runtime* e *type-safe*.
-    - Permite criar "Recipes" (receitas) para variantes de componentes (ex: botão primário/secundário).
 - [x] **Migrar Estilos Inline para PandaCSS**
-    - Converter o layout flexbox global.
-    - Criar padrões de tokens (cores, espaçamentos) no arquivo de configuração.
 
 ## 🧩 2. Componentização e Arquitetura
-O objetivo é "quebrar" o arquivo gigante `page.tsx` em partes menores e reutilizáveis.
-
 - [x] **Atomic Design (Pastas)**
-    - `components/ui`: Botões, Inputs, Selects (burros/sem lógica).
-    - `components/features`: Painel de Configuração, Botão do Microfone (com contexto).
-    - `components/layout`: Header, Footer.
 - [x] **Extração de Componentes**
-    - Mover `MicIcon`, `SettingsIcon`, `MoneyRain` para arquivos isolados.
-    - Criar componente `SettingsDrawer` (Gaveta de configurações).
 
 ## 🧠 3. Separação de Lógica (Hooks e Contextos)
-O objetivo é tirar a lógica de negócio de dentro da interface, de forma **gradual e segura**, validando cada passo.
-
-- [ ] **3.1 Isolamento do Reconhecimento de Voz**
-    - [ ] Criar o hook isolado `hooks/useSpeechRecognition.ts`.
-    - [ ] Refatorar `app/voice/page.tsx` para usar esse hook.
+- [ ] **3.1 Isolamento do Reconhecimento de Voz** (Em andamento)
 - [ ] **3.2 Isolamento das Chamadas de API**
-    - [ ] Criar o hook isolado `hooks/useGastosApi.ts`.
-    - [ ] Refatorar chamadas de API na `page.tsx` para usarem o hook.
 - [ ] **3.3 Gerenciamento de Estado Global do Usuário**
-    - [ ] Criar o `contexts/UserContext.tsx` para gerenciar `apiKey` e `userName`.
-    - [ ] Envolver a aplicação no `UserProvider` e migrar lógica de persistência.
 
-## 🔐 4. Autenticação e Dados
-O objetivo é profissionalizar o acesso, saindo do modelo de "Senha única no JSON".
+---
 
-- [ ] **Implementar NextAuth.js (Auth.js)**
-    - Configurar provider (ex: Google ou Credentials com hash seguro).
-- [ ] **Tela de Login e Cadastro**
-    - Criar rotas `/login` e `/register`.
-    - Proteger a rota `/voice` via Middleware.
-- [ ] **Refatoração do Banco (KV)**
-    - Adaptar a chave dos dados para incluir o ID do usuário autenticado.
+## 🏗️ 4. Infraestrutura e Banco de Dados (Neon PostgreSQL)
+O objetivo é abandonar o Vercel KV em favor de um banco relacional robusto e serverless usando Neon.
+
+- [ ] **4.1 Criação do Banco Neon**
+    - Criar conta no Neon (neon.tech) e provisionar um novo projeto PostgreSQL (Free Tier).
+    - Obter a `DATABASE_URL` (Connection String) e adicionar ao `.env.local`.
+- [ ] **4.2 Configuração do Prisma ORM**
+    - Executar `npm install prisma --save-dev` e `npm install @prisma/client`.
+    - Executar `npx prisma init` para gerar a pasta `prisma/` e o `.env`.
+    - Configurar o `schema.prisma` para usar o provider `postgresql` e a `env("DATABASE_URL")`.
+- [ ] **4.3 Modelagem de Dados (`schema.prisma`)**
+    - Criar o modelo `User` (`id` UUID, `name` String, `email` String UNIQUE, `passwordHash` String, `createdAt` DateTime).
+    - Criar o modelo `Expense` (`id` UUID, `amountCents` Int, `description` String, `paymentMethod` String, `date` DateTime, `rawText` String, `userId` UUID).
+    - Estabelecer relacionamento 1:N entre `User` e `Expense`.
+- [ ] **4.4 Sincronização e Geração do Client**
+    - Executar `npx prisma db push` para criar as tabelas no Neon.
+    - Executar `npx prisma generate` para criar o cliente TypeScript tipado.
+    - Opcional: Popular dados de teste via `npx prisma studio`.
+
+## 🏛️ 5. Arquitetura Limpa (Repositories e Schemas)
+O objetivo é separar a camada de acesso a dados e adicionar validação estrita.
+
+- [ ] **5.1 Padrão Repository**
+    - Criar `repositories/userRepository.ts` (operações Prisma para User).
+    - Criar `repositories/expenseRepository.ts` (operações Prisma para Expense).
+- [ ] **5.2 Validação Estrita com Zod**
+    - Instalar `zod`.
+    - Criar `schemas/expenseSchema.ts` e `schemas/authSchema.ts`.
+- [ ] **5.3 Refatoração da API Core**
+    - Atualizar `POST /api/gasto` para validar payload via Zod e salvar via `ExpenseRepository`.
+    - Atualizar `GET /api/export.csv` para usar o repositório.
+
+## 🔐 6. Autenticação Multi-usuário (NextAuth.js)
+O objetivo é criar um sistema real de sessão e login.
+
+- [ ] **6.1 Interfaces de Cadastro e Login**
+    - Criar páginas `/register` e `/login` seguindo o design system do PandaCSS.
+    - Criar endpoint `POST /api/auth/register` (usando `bcryptjs` e `UserRepository`).
+- [ ] **6.2 Integração NextAuth**
+    - Configurar `app/api/auth/[...nextauth]/route.ts` com `CredentialsProvider`.
+    - Validar login contra o PostgreSQL.
+- [ ] **6.3 Proteção de Rotas**
+    - Implementar Next.js Middleware para redirecionar usuários não autenticados de `/voice` para `/login`.
+    - Atualizar APIs para extraírem o `userId` exclusivamente da sessão segura.
+
+## 📊 7. Dashboard e Gestão de Gastos (CRUD)
+O objetivo é permitir a visualização e exclusão de gastos (features inviáveis no KV).
+
+- [ ] **7.1 Endpoint de Listagem e Deleção**
+    - Criar `GET /api/gasto` (listar com filtros usando `ExpenseRepository`).
+    - Criar `DELETE /api/gasto/[id]` (deletar gasto próprio).
+- [ ] **7.2 Interface do Dashboard**
+    - Criar a página `/dashboard` ou `/gastos`.
+    - Implementar visualização em tabela ou lista moderna.
+    - Adicionar botão "Excluir" chamando a API de deleção com confirmação de segurança.
+
+## 🤖 8. Inteligência Artificial (Gemini AI)
+O objetivo é substituir a lógica frágil de Regex por um LLM capaz de interpretar contexto, gírias e valores complexos falados pelo usuário.
+
+- [x] **8.1 Integração do SDK GenAI**
+    - Instalar o SDK do Google Gemini (usando `gemini-2.5-flash`).
+    - Criar o serviço `services/aiParserService.ts` centralizando a lógica.
+- [x] **8.2 Prompt Engineering para JSON e Extração Inteligente**
+    - Criar o prompt de sistema que instrui a IA a receber o texto bruto e devolver um JSON estrito.
+    - Extração dinâmica de valores, descrições, **data relativa** (ex: "ontem", "dia 15") e **método de pagamento** (`paymentMethod` como Crédito, Débito, Pix, Dinheiro).
+- [x] **8.3 Refatoração do Endpoint de Gastos e Limpeza de Código**
+    - Atualizar `POST /api/gasto` para usar a IA em vez das funções manuais obsoletas.
+    - Remover funções baseadas em Regex antigas (`parseAmountCents`, `detectBank`, etc.) do arquivo `lib/gastos.ts`.
+- [x] **8.4 Melhorias de UX e Transições Suaves**
+    - Adicionar animações de carregamento (`fadeIn` via PandaCSS).
+    - Exibir frases divertidas ciclando em sincronia com a espera da IA (ex: "Abrindo a carteira...", "Fazendo as contas...") até a conclusão da requisição.
+
+## 📱 9. Progressive Web App (PWA) e Mobile-First
+O objetivo é tornar o app instalável na tela inicial do celular (parecendo um app nativo) e preparar o terreno para publicação nas App Stores.
+
+- [ ] **9.1 Configuração PWA no Next.js**
+    - Instalar biblioteca (ex: `@ducanh2912/next-pwa` ou next-pwa).
+    - Criar o `manifest.json` com nome, cores e ícones do app.
+- [ ] **9.2 Service Workers e Ícones**
+    - Gerar os ícones (`maskable`, `apple-touch-icon`).
+    - Configurar o Service Worker para cache básico do shell da aplicação.
+- [ ] **9.3 Ajustes de UX para Mobile**
+    - Impedir o "pull-to-refresh" indesejado na tela de voz.
+    - Garantir que a UI fique perfeita na "safe area" de iPhones (sem sobrepor a notch ou barra inferior).

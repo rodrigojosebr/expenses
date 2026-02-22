@@ -1,53 +1,52 @@
 # GEMINI.md - Project Overview: gastos-kv-mvp
 
-This document provides a comprehensive overview of the `gastos-kv-mvp` project for AI-powered development assistance.
+This document provides a comprehensive overview of the `gastos-kv-mvp` project. It serves as the source of truth for architectural decisions, coding standards, and project goals for AI-powered development assistance.
 
 ## Project Overview
 
-`gastos-kv-mvp` is a Next.js application for tracking expenses. The primary interface is a voice-first page that allows users to record expenses by speaking. The application uses Vercel KV as its data store and features API endpoints for expense creation, user validation, and data export.
+`gastos-kv-mvp` is a Next.js application for tracking expenses. The application is transitioning from a personal tool using Vercel KV to a multi-user SaaS platform using PostgreSQL. The primary interface includes a voice-first page for recording expenses and a dashboard for managing them.
 
 ### Core Technologies
 
-*   **Framework:** Next.js (React)
+*   **Framework:** Next.js (React - App Router)
 *   **Language:** TypeScript
-*   **Database:** Vercel KV (Redis)
-*   **Deployment:** Vercel (inferred)
+*   **Database:** Neon (Serverless PostgreSQL)
+*   **ORM:** Prisma
+*   **Authentication:** NextAuth.js (Auth.js) with Credentials & bcryptjs
+*   **Validation:** Zod
+*   **Styling:** PandaCSS (zero-runtime, type-safe CSS-in-JS)
+*   **AI Engine:** Google Gemini SDK (Natural language parsing of expenses)
+*   **Mobile / PWA:** next-pwa (Installable web app logic)
 
-### Architecture
+### Architecture (Clean Code & Separation of Concerns)
 
-*   **Frontend:**
-    *   `/`: A minimal root page with basic endpoint information.
-    *   `/voice`: The main user interface for recording expenses via voice recognition. It's a modern, dark-themed, client-side component.
-*   **Backend (API Routes):**
-    *   `POST /api/gasto`: Receives a JSON payload with an expense description (`text`). It parses the text, extracts the amount, bank, and description, and stores it in Vercel KV.
-    *   `GET /api/export.csv`: Exports all expenses for a given month (`YYYY-MM`) as a CSV file.
-    *   `GET /api/user`: Validates an API key (password) and returns the corresponding user information (`{id, name}`).
-*   **Business Logic:** Located in `lib/gastos.ts`, this module contains core logic for:
-    *   Parsing expense text, including amounts written as words (e.g., "vinte reais").
-    *   Detecting the bank from the text.
-    *   Handling user authentication.
-*   **Configuration:** Environment variables are used to configure access passwords (`USER_KEYS_JSON`).
+The project strictly follows a layered architecture to separate business logic from UI and infrastructure:
 
-## Building and Running
-
-The project uses `npm` as the package manager.
-
-### Key Commands
-
-*   **Install dependencies:** `npm install`
-*   **Run the development server:** `npm run dev`
-*   **Build for production:** `npm run build`
-*   **Start the production server:** `npm run start`
-*   **Run linter:** `npm run lint`
+*   **1. Presentation Layer (UI/Components/PWA):**
+    *   `/app`: Next.js App Router pages, API route handlers, and PWA manifest.
+    *   `/components`: Reusable UI components following Atomic Design (`ui`, `features`, `layout`).
+*   **2. Application / Validation Layer:**
+    *   `/schemas`: Zod schemas for strict runtime validation of API requests and form submissions (e.g., `expenseSchema.ts`, `authSchema.ts`).
+    *   `/types`: TypeScript definitions inferred from Prisma and Zod schemas.
+*   **3. Business Logic Layer (AI Integration):**
+    *   `/services`: Contains core business rules. Specifically, `aiParserService.ts` completely replaces legacy Regex functions by calling the Google Gemini API (`gemini-2.5-flash`) to intelligently extract structured JSON (`amountCents`, `description`, `date`, `paymentMethod`) from natural language raw transcribed text. Services do not talk directly to the database.
+*   **4. Data Access Layer (Repository Pattern):**
+    *   `/repositories` (or `/lib/db`): Abstracts all database operations. API routes must call repositories (e.g., `expenseRepository.ts`), never Prisma directly. This makes future database migrations trivial.
+    *   `/prisma`: Contains `schema.prisma` defining `User` and `Expense` models, configured to connect to the Neon serverless PostgreSQL database.
 
 ## Development Conventions
 
-*   **Authentication:** API requests are authenticated using an `x-api-key` header or a `key` query parameter. The mapping of keys to user objects is stored in the `USER_KEYS_JSON` environment variable, with the following structure:
-    ```json
-    {
-      "your-secret-key": { "id": "unique_user_id", "name": "display_name" }
-    }
-    ```
-*   **Data Model:** Expense events are stored as JSON objects in Vercel KV. The event object now includes a `user` object (`{id, name}`). An index is maintained for each month for efficient, chronologically ordered queries.
-*   **Code Style:** The project follows standard TypeScript and Next.js conventions.
-*   **Error Handling:** API endpoints include `try...catch` blocks and return appropriate HTTP status codes.
+*   **Authentication:** The app uses NextAuth.js. Routes like `/voice` and `/dashboard` are protected by Next.js Middleware. User IDs are extracted securely from the NextAuth session, not from headers or client requests.
+*   **Database Access:** 
+    *   **NEVER** use direct ORM calls (`prisma.expense...`) inside Next.js API Routes (`app/api/.../route.ts`).
+    *   **ALWAYS** use the Repository Pattern (e.g., `ExpenseRepository.create(...)`).
+*   **Validation:** All incoming API payloads must be validated against a Zod schema before processing.
+*   **Error Handling:** API endpoints must return structured JSON errors (`{ error: string }`) with appropriate HTTP status codes (400 for validation, 401 for auth, 500 for server errors).
+*   **Code Style:** Strict TypeScript. No `any`. Variables must be camelCase, components PascalCase.
+
+## Key Commands
+
+*   `npm run dev` - Start development server
+*   `npx prisma db push` - Sync Prisma schema with database
+*   `npx prisma studio` - Open Prisma visual database editor
+*   `npx tsc --noEmit` - Type-check the project

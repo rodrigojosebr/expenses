@@ -63,7 +63,7 @@ export async function GET(req: Request) {
     }
   }
 
-  let csv = "Data;Valor;Descricao;Banco\n";
+  let csv = "Data;Valor;Descricao;Metodo de Pagamento\n";
   if (!allEventIds.length) {
     const csvWithBOM = "\uFEFF" + csv;
     return new NextResponse(csvWithBOM, {
@@ -88,7 +88,7 @@ export async function GET(req: Request) {
       csvEscape(String(ev.date ?? "")),
       csvEscape(String(ev.amountBRL ?? "")),
       csvEscape(String(ev.description ?? "")),
-      csvEscape(String(ev.bank ?? "")),
+      csvEscape(String(ev.paymentMethod ?? "")),
     ].join(";");
     csv += row + "\n";
   }

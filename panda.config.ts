@@ -18,6 +18,10 @@ export default defineConfig({
           "0%": { transform: "translateY(-10vh) rotate(0deg)", opacity: 1 },
           "100%": { transform: "translateY(110vh) rotate(720deg)", opacity: 0 },
         },
+        fadeIn: {
+          "0%": { opacity: 0, transform: "translateY(5px)" },
+          "100%": { opacity: 1, transform: "translateY(0)" },
+        },
       },
     },
   },
