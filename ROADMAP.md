@@ -96,8 +96,10 @@ O objetivo é substituir a lógica frágil de Regex por um LLM capaz de interpre
     - Atualizar `POST /api/gasto` para usar a IA em vez das funções manuais obsoletas.
     - Remover funções baseadas em Regex antigas (`parseAmountCents`, `detectBank`, etc.) do arquivo `lib/gastos.ts`.
 - [x] **8.4 Melhorias de UX e Transições Suaves**
-    - Adicionar animações de carregamento (`fadeIn` via PandaCSS).
+    - Adicionar animações de carregamento (`fadeIn` e `slideDown` via PandaCSS).
     - Exibir frases divertidas ciclando em sincronia com a espera da IA (ex: "Abrindo a carteira...", "Fazendo as contas...") até a conclusão da requisição.
+    - **Microfone Inteligente:** Implementação de escuta contínua com encerramento automático após 3 segundos de silêncio para acomodar falas pausadas.
+    - **Branding:** Rebranding completo para "Gast.ai" com novo Favicon e logo no cabeçalho.
 - [x] **8.5 Feedback Financeiro Imediato**
     - Cálculo dinâmico e exibição do total gasto no mês atual logo após o registro da despesa.
     - Formatação monetária padronizada (pt-BR) e mensagens de sucesso personalizadas com o nome do usuário.
