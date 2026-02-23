@@ -280,7 +280,15 @@ export default function VoiceGastoPage() {
         if (response.ok && data.user?.name) {
           setUserName(data.user.name);
           localStorage.setItem('gastos_user_name', data.user.name);
-          setStatus(`Bem-vindo, ${data.user.name}!`);
+          setStatus(`✅ Bem-vindo(a), ${data.user.name}!`);
+          
+          // Fecha o painel imediatamente após o sucesso
+          setShowSettings(false);
+
+          // Restaura a mensagem principal após um breve momento
+          setTimeout(() => {
+            setStatus('Clique no microfone para começar');
+          }, 2500);
         } else {
           setStatus('Senha inválida. Por favor, tente novamente.');
           setUserName('');
@@ -400,7 +408,7 @@ export default function VoiceGastoPage() {
       </Header>
 
       {showSettings && (
-        <div ref={settingsPanelRef}>
+        <div ref={settingsPanelRef} className={css({ animation: 'slideDown 0.3s ease-out' })}>
           <SettingsPanel>
             <div
               style={{
