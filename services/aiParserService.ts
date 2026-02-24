@@ -19,14 +19,15 @@ export async function parseExpenseText(text: string): Promise<ParsedExpense | nu
   const prompt = `
 Você é um assistente financeiro de transcrição de voz.
 Hoje é ${todayStr} (use se a data não for dita).
-Corrija erros comuns de STT pelo contexto (ex: "pic" -> Pix, "shopp" -> Shopee, "chain" -> Shein). Mantenha "shopping" se for o local.
+
+Instruções de Formatação:
+1. Corrija erros comuns de STT pelo contexto (ex: "pic" -> Pix, "shopp" -> Shopee, "chain" -> Shein). Mantenha "shopping" se for o local.
+2. Descrição: Deve ser concisa, mas informativa. Inclua o "quê" e o "onde" se disponíveis, mas remova excesso de adjetivos subjetivos (ex: "Jantarmaravilhoso no restaurante" -> "Jantar no Restaurante").
 
 Retorne APENAS um JSON estrito:
 {
   "amountCents": <inteiro em centavos. Ex: 18,70 = 1870. null se não achar>,
-  "description": <string do gasto corrigida. Ex: "Bolsa na Shein">,
-    "description": <string, a descrição do que foi comprado. Ex: "Bolsa no Carrefour". Se não houver, coloque "Sem descrição">,
-
+  "description": <string, a descrição do gasto corrigida. Ex: "Bolsa no Carrefour". Se não houver, coloque "Sem descrição">,
   "date": <YYYY-MM-DD da compra>,
   "paymentMethod": <Crédito, Débito, Pix, Dinheiro, etc. "Não informado" se omitido>
 }
