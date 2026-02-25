@@ -39,7 +39,7 @@ export async function parseExpenseText(text: string, timeZone: string = 'America
       contents: prompt,
       config: {
         responseMimeType: "application/json",
-        temperature: 0.3,
+        temperature: 0,
       }
     });
 
