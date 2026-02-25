@@ -103,10 +103,14 @@ O objetivo é substituir a lógica frágil de Regex por um LLM capaz de interpre
 - [x] **8.5 Feedback Financeiro Imediato**
     - Cálculo dinâmico e exibição do total gasto no mês atual logo após o registro da despesa.
     - Formatação monetária padronizada (pt-BR) e mensagens de sucesso personalizadas com o nome do usuário.
-- [ ] **8.6 Análise Financeira Opcional na Exportação**
-    - Ao solicitar o CSV, oferecer ao usuário a opção: "Deseja que a IA analise seus gastos deste período?".
-    - Se sim: O sistema envia os dados para o Gemini e exibe um modal com o resumo (maiores gastos, dicas e tendências) antes de liberar o download.
-    - Se não: O download do CSV começa imediatamente.
+- [x] **8.6 Análise Financeira Avançada (Gastão Persona)**
+    - Implementado `GET /api/analyze` usando o modelo `gemini-2.5-flash-lite` com *streaming de texto* em tempo real.
+    - Criação da persona **"Gastão"**, mascote sarcástico e amigável, com regras rígidas no prompt para evitar markdown e focar em conselhos construtivos e diretos.
+    - Modal na UI projetado para simular o efeito "máquina de escrever" do ChatGPT e lidar com overflow na tela de forma otimizada.
+    - Controle refinado de **Temperatura da IA** (`0.1` para cálculos e extrações assertivas e `0.3` para respostas orgânicas do Gastão).
+- [x] **8.7 Correção de Fuso Horário Local**
+    - Identificação e captura do fuso horário dinâmico do cliente (`Intl.DateTimeFormat().resolvedOptions().timeZone`) no frontend.
+    - Envio do cabeçalho `x-timezone` para o backend para corrigir discrepâncias de data (UTC x América Latina) tanto na extração via Gemini quanto na exibição nativa.
 
 ## 📱 9. Progressive Web App (PWA) e Mobile-First
 O objetivo é tornar o app instalável na tela inicial do celular (parecendo um app nativo) e preparar o terreno para publicação nas App Stores.

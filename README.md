@@ -9,9 +9,10 @@ Atualmente em fase de MVP (usando Vercel KV) e em transição ativa para uma arq
 ## ✨ Funcionalidades em Destaque
 
 *   **🎙️ Registro por Voz (Voice-First):** Pressione o microfone e diga coisas como *"Ontem gastei 35 reais de Uber no cartão de crédito"*. O app entende linguagem natural, gírias e datas relativas, possuindo um "silêncio inteligente" que aguarda o usuário terminar de falar.
-*   **🤖 Inteligência Artificial (Google Gemini):** Alimentado pelo modelo `gemini-2.5-flash`, o sistema extrai automaticamente o valor (em centavos e formatado em R$), a descrição exata, a data e o método de pagamento (Crédito, Débito, Pix, Dinheiro), corrigindo falhas de STT no processo.
-*   **💡 Feedback Financeiro Imediato:** Assim que o gasto é salvo, você recebe um "choque de realidade" animado informando o total que você já gastou naquele mês, acompanhado de uma frase bem-humorada com o seu nome (ex: *"💸 Mais um pra conta, Raj! Dinheiro é pra circular mesmo"*).
-*   **🎨 UI/UX Moderna e Fluida:** Construído com Next.js (App Router) e estilizado usando **PandaCSS** (zero-runtime CSS-in-JS), com animações de carregamento (`fadeIn`, `slideDown`) e feedback visual claro para o usuário em transições.
+*   **🤖 Extração com IA (Google Gemini):** Alimentado pelo modelo `gemini-2.5-flash-lite`, o sistema extrai automaticamente o valor (em centavos e formatado em R$), a descrição exata, a data (suportando fuso horário local) e o método de pagamento (Crédito, Débito, Pix, Dinheiro), corrigindo falhas de STT no processo.
+*   **🤵‍♂️ Gastão - Seu Consultor Financeiro:** O mascote do app usa IA para analisar seus gastos de forma bem-humorada, irônica e inteligente, alertando sobre padrões de gastos diretamente na interface usando um efeito de digitação em tempo real (streaming).
+*   **💡 Feedback Financeiro Imediato:** Assim que o gasto é salvo, você recebe um "choque de realidade" animado informando o total que você já gastou naquele mês.
+*   **🎨 UI/UX Moderna e Fluida:** Construído com Next.js (App Router) e estilizado usando **PandaCSS** (zero-runtime CSS-in-JS), com animações de carregamento (`fadeIn`, `slideDown`), modais de análise com rolagem otimizada e feedback visual claro para o usuário.
 *   **📊 Exportação de Dados:** Geração de relatórios mensais em `.csv` (Data; Valor; Descrição; Método de Pagamento) compatíveis com Excel.
 
 ---

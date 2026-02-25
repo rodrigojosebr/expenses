@@ -28,7 +28,9 @@ The project strictly follows a layered architecture to separate business logic f
 *   **2. Application / Validation Layer:**
     *   `/schemas`: Zod schemas for strict runtime validation of API requests and form submissions (e.g., `expenseSchema.ts`, `authSchema.ts`). All data must pass Zod before reaching the Repository.
 *   **3. Business Logic Layer (AI Integration):**
-    *   `/services`: Contains core business rules. Specifically, `aiParserService.ts` replaces legacy Regex functions by calling the Google Gemini API (`gemini-2.5-flash-lite`) to intelligently extract structured JSON (`amountCents`, `description`, `date`, `paymentMethod`) from natural language raw transcribed text. Services do not talk directly to the database.
+    *   `/services`: Contains core business rules. Specifically, `aiParserService.ts` replaces legacy Regex functions by calling the Google Gemini API (`gemini-2.5-flash-lite`).
+        *   **Parser:** Extracts structured JSON (`amountCents`, `description`, `date`, `paymentMethod`) with strict low temperature (`0.3`) for precision. **Crucial:** Always passes the client's local timezone (`x-timezone`) to Gemini to ensure expenses near midnight resolve to the correct local day, overriding the server's default UTC context.
+        *   **Analyzer (Gastão Persona):** Provides a streaming natural language analysis using an even lower temperature (`0.1`) to guarantee deterministic math while maintaining a sarcastic, friendly persona ("Gastão"). Prompts explicitly forbid markdown styling for a cleaner UI render.
 *   **4. Data Access Layer (Repository Pattern):**
     *   `/repositories`: Abstracts all database operations. API routes must call repositories (e.g., `ExpenseRepository.create`), **never Prisma directly**. This makes future database migrations trivial.
     *   `/prisma`: Contains `schema.prisma` defining `User` and `Expense` models. **Note:** Prisma v7 uses `prisma.config.ts` for database connection URLs, not the schema file.
