@@ -10,6 +10,7 @@ import { parseExpenseText } from "@/services/aiParserService";
 export async function POST(req: Request) {
   try {
     const apiKey = req.headers.get("x-api-key");
+    const timeZone = req.headers.get("x-timezone") || 'America/Sao_Paulo';
     const user = getUserFromApiKey(apiKey);
     if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
@@ -17,7 +18,7 @@ export async function POST(req: Request) {
     const text = String(body.text ?? body.valor ?? "").trim();
     if (!text) return NextResponse.json({ error: "Missing text" }, { status: 400 });
 
-    const parsedExpense = await parseExpenseText(text);
+    const parsedExpense = await parseExpenseText(text, timeZone);
     if (!parsedExpense || parsedExpense.amountCents == null) {
       return NextResponse.json({ error: "Não consegui extrair as informações do seu gasto (valor, descrição). Tente falar de forma mais clara." }, { status: 400 });
     }

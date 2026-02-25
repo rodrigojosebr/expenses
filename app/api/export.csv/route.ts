@@ -80,7 +80,9 @@ export async function GET(req: Request) {
   const validEvents = events.filter((ev) => ev !== null);
   validEvents.sort((a, b) => {
     if (!a.date || !b.date) return 0;
-    return new Date(a.date).getTime() - new Date(b.date).getTime();
+    const [d1, m1, y1] = a.date.split('/');
+    const [d2, m2, y2] = b.date.split('/');
+    return new Date(`${y1}-${m1}-${d1}T12:00:00Z`).getTime() - new Date(`${y2}-${m2}-${d2}T12:00:00Z`).getTime();
   });
 
   for (const ev of validEvents) {
