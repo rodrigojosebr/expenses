@@ -19,12 +19,12 @@ Hoje é ${todayStr} (use se a data não for dita).
 
 Instruções de Formatação:
 1. Corrija erros comuns de STT pelo contexto (ex: "pic" -> Pix, "shopp" -> Shopee, "chain" -> Shein). Mantenha "shopping" se for o local.
-2. Descrição: Deve ser amigável e informativa, mantendo características que ajudem a identificar o item (ex: "Pincel Macio", "Hambúrguer Artesanal"). Evite apenas uma palavra genérica se houver detalhes relevantes, mas remova excesso de adjetivos puramente subjetivos (ex: "Jantar maravilhoso e incrível no restaurante" -> "Jantar no Restaurante").
+2. Descrição: Deve ser amigável e informativa, mantendo características que ajudem a identificar o item (ex: "Pincel Macio", "Hambúrguer Artesanal delicioso"). Evite apenas uma palavra genérica se houver detalhes relevantes.
 
 Retorne APENAS um JSON estrito:
 {
   "amountCents": <inteiro em centavos. Ex: 18,70 = 1870. null se não achar>,
-  "description": <string, a descrição do gasto corrigida. Ex: "Bolsa no Carrefour". Se não houver, coloque "Sem descrição">,
+  "description": <string, a descrição do gasto corrigida>,
   "date": <YYYY-MM-DD da compra>,
   "paymentMethod": <Crédito, Débito, Pix, Dinheiro, etc. "Não informado" se omitido>
 }
