@@ -37,7 +37,7 @@ export async function POST(req: Request) {
       rawText: text,
       userId: newUserId
     };
-    
+
     // 2. Validação Estrita (Zod)
     const validationResult = createExpenseSchema.safeParse(expenseData);
     if (!validationResult.success) {
@@ -50,10 +50,10 @@ export async function POST(req: Request) {
 
     // 4. Cálculo do Total Mensal (Buscando direto do Postgres)
     const allUserExpenses = await ExpenseRepository.findByUserId(newUserId);
-    
+
     // Pega o YYYY-MM do mês atual (UTC)
     const currentMonth = new Date().toISOString().slice(0, 7);
-    
+
     const monthlyTotalCents = allUserExpenses
       // Filtra apenas os que pertencem ao mês corrente
       .filter(exp => exp.date.toISOString().startsWith(currentMonth))
@@ -70,10 +70,10 @@ export async function POST(req: Request) {
       paymentMethod: savedExpense.paymentMethod,
     };
 
-    return NextResponse.json({ 
-      ok: true, 
-      event, 
-      monthlyTotalBRL: centsToBRL(monthlyTotalCents) 
+    return NextResponse.json({
+      ok: true,
+      event,
+      monthlyTotalBRL: centsToBRL(monthlyTotalCents)
     });
   } catch (e: any) {
     console.error("Erro Crítico na Rota de Gastos:", e);

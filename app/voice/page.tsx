@@ -228,9 +228,10 @@ export default function VoiceGastoPage() {
     });
 
     try {
+      const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone || 'America/Sao_Paulo';
       const fetchPromise = fetch('/api/gasto', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'x-api-key': apiKey },
+        headers: { 'Content-Type': 'application/json', 'x-api-key': apiKey, 'x-timezone': timeZone },
         body: JSON.stringify({ text: transcript }),
       }).catch(err => { throw err; });
 

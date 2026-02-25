@@ -7,14 +7,11 @@ export interface ParsedExpense {
   paymentMethod: string;
 }
 
-export async function parseExpenseText(text: string): Promise<ParsedExpense | null> {
+export async function parseExpenseText(text: string, timeZone: string = 'America/Sao_Paulo'): Promise<ParsedExpense | null> {
   const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY || 'DUMMY_KEY_FOR_BUILD' });
 
-  const today = new Date();
-  const year = today.getFullYear();
-  const month = String(today.getMonth() + 1).padStart(2, '0');
-  const day = String(today.getDate()).padStart(2, '0');
-  const todayStr = `${year}-${month}-${day}`;
+  // Obter a data no fuso horário fornecido para evitar problemas de data
+  const todayStr = new Intl.DateTimeFormat('en-CA', { timeZone }).format(new Date());
 
   const prompt = `
 Você é um assistente financeiro de transcrição de voz.
@@ -22,7 +19,7 @@ Hoje é ${todayStr} (use se a data não for dita).
 
 Instruções de Formatação:
 1. Corrija erros comuns de STT pelo contexto (ex: "pic" -> Pix, "shopp" -> Shopee, "chain" -> Shein). Mantenha "shopping" se for o local.
-2. Descrição: Deve ser concisa, mas informativa. Inclua o "quê" e o "onde" se disponíveis, mas remova excesso de adjetivos subjetivos (ex: "Jantarmaravilhoso no restaurante" -> "Jantar no Restaurante").
+2. Descrição: Deve ser amigável e informativa, mantendo características que ajudem a identificar o item (ex: "Pincel Macio", "Hambúrguer Artesanal"). Evite apenas uma palavra genérica se houver detalhes relevantes, mas remova excesso de adjetivos puramente subjetivos (ex: "Jantar maravilhoso e incrível no restaurante" -> "Jantar no Restaurante").
 
 Retorne APENAS um JSON estrito:
 {

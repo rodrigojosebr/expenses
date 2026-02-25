@@ -35,11 +35,11 @@ export async function GET(req: Request) {
 
     // Puxa tudo e filtra na memória para o MVP (no futuro podemos usar where: { date: { gte, lte } })
     const allUserExpenses = await ExpenseRepository.findByUserId(newUserId);
-    
+
     // Cálculo dos limites do período (UTC)
     const [startYear, startMonthVal] = from.split("-").map(Number);
     const startDate = new Date(startYear, startMonthVal - 1, 1);
-    
+
     let endDate = new Date(startDate);
     endDate.setMonth(endDate.getMonth() + 1); // Final do primeiro mês
 
@@ -54,7 +54,7 @@ export async function GET(req: Request) {
     validEvents.sort((a, b) => a.date.getTime() - b.date.getTime());
 
     let csv = "Data;Valor;Descricao;Metodo de Pagamento\n";
-    
+
     for (const ev of validEvents) {
       const dateFormatted = ev.date.toISOString().split('T')[0].split('-').reverse().join('/');
       const row = [
