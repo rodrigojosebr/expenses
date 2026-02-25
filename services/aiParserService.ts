@@ -5,7 +5,7 @@ export interface ParsedExpense {
   description: string;
   date: string; // YYYY-MM-DD
   paymentMethod: string;
-}
+};
 
 export async function parseExpenseText(text: string, timeZone: string = 'America/Sao_Paulo'): Promise<ParsedExpense | null> {
   const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY || 'DUMMY_KEY_FOR_BUILD' });
